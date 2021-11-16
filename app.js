@@ -44,8 +44,6 @@ canvas.height = mapDim[1]*tileWidth;
 
 var startPoint=getIndexofCoord(1*tileWidth, 1*tileWidth);
 var endPoint=getIndexofCoord(3*tileWidth, 4*tileWidth);
-map[startPoint] = 2;
-map[endPoint] = 3; 
 
 function getIndexofCoord(x, y){
     return Math.floor(x/tileWidth)+Math.floor(y/tileWidth)*mapDim[0];
@@ -55,7 +53,16 @@ function drawMap(){
     ctx.strokeStyle = 'grey';
     for(var y=0;y<mapDim[1];y++){
         for(var x=0;x<mapDim[0];x++){
-            ctx.fillStyle = colorTab[map[x+y*mapDim[0]]];
+            switch(x+y*mapDim[0]){
+            case startPoint:
+                ctx.fillStyle = colorTab[2];
+                break;
+            case endPoint:
+                ctx.fillStyle = colorTab[3];
+                break;
+            default:
+                ctx.fillStyle = colorTab[map[x+y*mapDim[0]]];
+            }
             ctx.fillRect(x*tileWidth, y*tileWidth, tileWidth, tileWidth);
             ctx.strokeRect(x*tileWidth, y*tileWidth, tileWidth, tileWidth);
         }
@@ -160,14 +167,35 @@ function findPath(){
 
 function tracePath(){ // fait changer de couleur les cases renvoyées par la fonction findPath()
     var path = findPath();
+    drawMap();
     if(path!=null){
+        ctx.fillStyle = colorTab[4];
+        ctx.strokeStyle = 'grey';
         path.forEach((e,i)=>{
             if(i!=0 && i!=path.length-1){
-                map[e] = 4;
+                ctx.fillRect((e%mapDim[0])*tileWidth, Math.floor(e/mapDim[0])*tileWidth, tileWidth, tileWidth);
+                ctx.strokeRect((e%mapDim[0])*tileWidth, Math.floor(e/mapDim[0])*tileWidth, tileWidth, tileWidth);
             }
         });
     }
-    drawMap();
 }
 
 drawMap();
+
+canvas.addEventListener('click', (e)=>{
+    var mouseX = e.clientX - canvas.getBoundingClientRect().left;
+    var mouseY = e.clientY - canvas.getBoundingClientRect().top;
+
+    startPoint = getIndexofCoord(mouseX, mouseY);
+    tracePath();
+});
+
+canvas.addEventListener('contextmenu', (e)=>{
+    e.preventDefault();
+    
+    var mouseX = e.clientX - canvas.getBoundingClientRect().left;
+    var mouseY = e.clientY - canvas.getBoundingClientRect().top;
+
+    endPoint = getIndexofCoord(mouseX, mouseY);
+    tracePath();
+});
